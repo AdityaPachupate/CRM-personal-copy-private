@@ -1,0 +1,85 @@
+import { FollowUpDto, FollowUpPriority, FollowUpOutcome, LeadStatus } from '@/types';
+import { apiClient } from '@/lib/api-client';
+import { ALL_STATUSES } from '@/constants';
+
+const PRIORITIES: FollowUpPriority[] = ['Low', 'Medium', 'High'];
+const OUTCOMES: FollowUpOutcome[] = [
+  'None',
+  'Busy',
+  'NotInterested',
+  'CallbackRequested',
+  'Converted',
+  'WrongNumber',
+  'Disconnected'
+];
+
+export interface CreateFollowUpRequest {
+  leadId: string;
+  followUpDate: string;
+  priority: FollowUpPriority;
+  notes: string;
+  source: string;
+}
+
+export interface CompleteFollowUpRequest {
+  followUpId: string;
+  outcome: FollowUpOutcome;
+  notes: string;
+  newLeadStatus?: LeadStatus;
+  nextFollowUpDate?: string;
+  nextFollowUpPriority?: FollowUpPriority;
+}
+
+export const followupsApi = {
+  getAllToday: async (): Promise<FollowUpDto[]> => {
+    return apiClient<FollowUpDto[]>('/api/followups/today');
+  },
+
+  getAll: async (params?: { 
+    status?: string; 
+    startDate?: string; 
+    endDate?: string; 
+    leadId?: string;
+    isTrash?: boolean;
+  }): Promise<FollowUpDto[]> => {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.startDate) searchParams.append('startDate', params.startDate);
+    if (params?.endDate) searchParams.append('endDate', params.endDate);
+    if (params?.leadId) searchParams.append('leadId', params.leadId);
+    if (params?.isTrash) searchParams.append('isTrash', 'true');
+    
+    const query = searchParams.toString();
+    return apiClient<FollowUpDto[]>(`/api/followups${query ? `?${query}` : ''}`);
+  },
+
+  create: async (request: CreateFollowUpRequest): Promise<FollowUpDto> => {
+    return apiClient<FollowUpDto>('/api/followups', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...request,
+        priority: request.priority,
+      }),
+    });
+  },
+
+  complete: async (id: string, request: CompleteFollowUpRequest): Promise<void> => {
+    return apiClient<void>(`/api/followups/${id}/complete`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        ...request,
+        outcome: request.outcome,
+        newLeadStatus: request.newLeadStatus ?? null,
+        nextFollowUpPriority: request.nextFollowUpPriority ?? null,
+      }),
+    });
+  },
+
+  restore: async (id: string): Promise<void> => {
+    return apiClient<void>(`/api/followups/${id}/restore`, { method: 'POST' });
+  },
+
+  delete: async (id: string, isPermanent: boolean = false): Promise<void> => {
+    return apiClient<void>(`/api/followups/${id}${isPermanent ? '?isPermanent=true' : ''}`, { method: 'DELETE' });
+  }
+};

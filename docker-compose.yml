@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: ./CRM.API
+      dockerfile: Dockerfile.deploy
+    depends_on: []
+    env_file:
+      - .env # Load root .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__NeonProductionDb=${ConnectionStrings__NeonProductionDb}
+    volumes:
+      - ./CRM.API/logs:/app/logs
+
+  client:
+    build:
+      context: ./crm.Client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    env_file:
+      - .env # Load root .env

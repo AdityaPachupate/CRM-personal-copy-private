@@ -1,0 +1,32 @@
+services:
+  # .NET API Service
+  - type: web
+    name: crm-api
+    env: docker
+    dockerContext: CRM.API
+    dockerfilePath: CRM.API/Dockerfile.deploy
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__NeonProductionDb
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+  # React Frontend (Static Site)
+  - type: web
+    name: crm-client
+    runtime: static
+    rootDir: crm.Client
+    buildCommand: rm -rf node_modules package-lock.json && npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: VITE_API_BASE_URL
+        value: https://crm-api-1ugj.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
