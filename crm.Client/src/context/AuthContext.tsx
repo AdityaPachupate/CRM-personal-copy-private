@@ -9,8 +9,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const HARDCODED_USER = {
-  username: import.meta.env.VITE_AUTH_USERNAME,
-  password: import.meta.env.VITE_AUTH_PASSWORD
+  username: import.meta.env.VITE_AUTH_USERNAME || 'admin',
+  password: import.meta.env.VITE_AUTH_PASSWORD || 'admin123'
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -20,7 +20,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const login = (username: string, password: string, rememberMe: boolean = false) => {
-    if (username === HARDCODED_USER.username && password === HARDCODED_USER.password) {
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
+    if (trimmedUsername === HARDCODED_USER.username && trimmedPassword === HARDCODED_USER.password) {
       setIsLoggedIn(true);
       if (rememberMe) {
         localStorage.setItem('isLoggedIn', 'true');
