@@ -57,19 +57,9 @@ namespace CRM.API.Infrastructure.Persistence
 
             await db.SaveChangesAsync();
 
-            // 4. Seed 20 Leads
+            // 4. Seed 10 Leads
             var leadsData = new (string Name, string Phone, LeadStatus Status, string Source, int DaysAgo)[]
             {
-                ("Rahul Sharma", "9876543210", LeadStatus.Converted, "Facebook", 100),
-                ("Anjali Gupta", "8765432109", LeadStatus.Converted, "Instagram", 80),
-                ("Vikram Singh", "7654321098", LeadStatus.Consulted, "Google", 12),
-                ("Sneha Patel", "9988776655", LeadStatus.Converted, "WordOfMouth", 45),
-                ("Amit Verma", "8877665544", LeadStatus.Converted, "Walking", 60),
-                ("Priya Reddy", "7766554433", LeadStatus.New, "Facebook", 1),
-                ("Rajesh Kumar", "9123456780", LeadStatus.Consulted, "Instagram", 8),
-                ("Deepika Padukone", "9234567891", LeadStatus.Contacted, "Google", 15),
-                ("Sanjay Dutt", "9345678902", LeadStatus.Converted, "Walking", 120),
-                ("Kriti Sanon", "9456789013", LeadStatus.New, "Facebook", 2),
                 ("Arjun Kapoor", "9567890124", LeadStatus.Lost, "Google", 20),
                 ("Sara Ali Khan", "9678901235", LeadStatus.Consulted, "Instagram", 3),
                 ("Ranbir Kapoor", "9789012346", LeadStatus.Converted, "WordOfMouth", 50),
@@ -134,7 +124,7 @@ namespace CRM.API.Infrastructure.Persistence
             var convertedLeads = leads.Where(l => l.Status == LeadStatus.Converted).ToList();
             foreach (var lead in convertedLeads)
             {
-                if (lead.Name == "Rahul Sharma" || lead.Name == "Sanjay Dutt")
+                if (lead.Name == "Ranbir Kapoor" || lead.Name == "Alia Bhatt")
                 {
                     // Past enrollment
                     var oldPkg = packages[rnd.Next(packages.Count)];

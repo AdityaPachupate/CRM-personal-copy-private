@@ -1,5 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Users, 
@@ -58,9 +61,25 @@ const ALL_WIDGETS = [
   { id: 'trash', label: 'Trash', to: '/trash', icon: Trash2, color: 'text-slate-500' },
 ];
 
+
 export default function Dashboard() {
   const { logout } = useAuth();
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const queryClient = useQueryClient();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const { data: stats, isLoading: statsLoading, refetch } = useDashboardStats();
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      await queryClient.invalidateQueries();
+      await refetch();
+      toast.success('Data synchronized with database');
+    } catch (error) {
+      toast.error('Failed to sync data');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const [enabledWidgets, setEnabledWidgets] = useState<string[]>(() => {
     const saved = localStorage.getItem('dashboard_widgets');
@@ -126,15 +145,30 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold tracking-tight">{greeting}, Admin!</h1>
             <p className="mt-2 text-primary-foreground/80 font-medium">Today is {currentDate}.</p>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={logout} 
-            className="text-primary-foreground hover:bg-white/20 transition-colors h-10 w-10 rounded-xl"
-            title="Logout"
-          >
-            <LogOut className="h-6 w-6" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleSync} 
+              className={cn(
+                "text-primary-foreground hover:bg-white/20 transition-colors h-10 w-10 rounded-xl",
+                isSyncing && "animate-spin"
+              )}
+              disabled={isSyncing}
+              title="Sync Data"
+            >
+              <RefreshCw className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={logout} 
+              className="text-primary-foreground hover:bg-white/20 transition-colors h-10 w-10 rounded-xl"
+              title="Logout"
+            >
+              <LogOut className="h-6 w-6" />
+            </Button>
+          </div>
         </div>
       </div>
 
