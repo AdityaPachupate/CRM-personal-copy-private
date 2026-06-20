@@ -127,14 +127,18 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
+app.UseExceptionHandler();
+
+// UseCors must be before UseAuthorization and after UseRouting (which is implicitly at the top)
 app.UseCors();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 if (!string.IsNullOrEmpty(connectionString))
 {
     try 
@@ -153,18 +157,13 @@ else
     Log.Warning("Skipping Database Migration because connection string is null.");
 }
 
-
 app.UseSerilogRequestLogging();
 app.UseMiddleware<CorrelationIdMiddleware>();
-app.UseExceptionHandler();
 
-if (app.Environment.IsProduction())
-{
-    app.UseHttpsRedirection();
-}
+// Removed app.UseHttpsRedirection() because Render handles SSL termination
+// and forwards as HTTP. This prevents 307 redirects on preflight requests.
 
 app.UseAuthorization();
-
 
 app.MapHealthChecks("/api/health/live", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/api/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
